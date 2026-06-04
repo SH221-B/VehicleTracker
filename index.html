@@ -1,1349 +1,237 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Vehicle Number Checker</title>
+  <title>Vehicle Check</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    :root {
-      --primary: #667eea;
-      --primary-dark: #5a6fd8;
-      --secondary: #764ba2;
-      --success: #10b981;
-      --error: #ef4444;
-      --warning: #f59e0b;
-      --text-primary: #1f2937;
-      --text-secondary: #6b7280;
-      --bg-primary: #f8fafc;
-      --bg-card: #ffffff;
-      --border: #e5e7eb;
-      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      --radius: 12px;
-    }
-
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      color: var(--text-primary);
-    }
-
-    .container {
-      width: 100%;
-      max-width: 800px;
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow-lg);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      padding: 2rem;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 200%;
-      height: 200%;
-      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
-      animation: float 20s linear infinite;
-    }
-
-    @keyframes float {
-      0% { transform: translate(-50%, -50%) rotate(0deg); }
-      100% { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-
-    .header h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    .header p {
-      opacity: 0.9;
-      position: relative;
-      z-index: 1;
-    }
-
-    .content {
-      padding: 2rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .form-group.grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .form-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-primary);
-      font-size: 0.9rem;
-    }
-
-    .input-container {
-      position: relative;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 0.875rem 1rem;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      background: var(--bg-card);
-      outline: none;
-    }
-
-    .form-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      transform: translateY(-1px);
-    }
-
-    .form-input.error {
-      border-color: var(--error);
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-    }
-
-    .form-input.success {
-      border-color: var(--success);
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-    }
-
-    .input-icon {
-      position: absolute;
-      right: 0.875rem;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1.25rem;
-      height: 1.25rem;
-      opacity: 0;
-      transition: all 0.2s ease;
-    }
-
-    .input-icon.show {
-      opacity: 1;
-    }
-
-    .btn {
-      padding: 0.875rem 1.5rem;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      outline: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .btn.full-width {
-      width: 100%;
-      justify-content: center;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .btn-secondary {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      border: 2px solid var(--border);
-    }
-
-    .btn-secondary:hover {
-      background: var(--border);
-      transform: translateY(-1px);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-success:hover {
-      background: #059669;
-      transform: translateY(-1px);
-    }
-
-    .btn-error {
-      background: var(--error);
-      color: white;
-    }
-
-    .btn-error:hover {
-      background: #dc2626;
-      transform: translateY(-1px);
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: white;
-    }
-
-    .btn-warning:hover {
-      background: #d97706;
-      transform: translateY(-1px);
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none !important;
-    }
-
-    .loading {
-      position: relative;
-    }
-
-    .loading::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 1rem;
-      height: 1rem;
-      margin: -0.5rem 0 0 -0.5rem;
-      border: 2px solid transparent;
-      border-top: 2px solid currentColor;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .result {
-      margin-top: 1.5rem;
-      padding: 1rem;
-      border-radius: var(--radius);
-      font-weight: 500;
-      text-align: center;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-    }
-
-    .result.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .result.success {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    .result.error {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--error);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-    }
-
-    .vehicle-details {
-      margin-top: 1.5rem;
-      background: var(--bg-primary);
-      border-radius: var(--radius);
-      overflow: hidden;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.4s ease;
-    }
-
-    .vehicle-details.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .vehicle-details h3 {
-      padding: 1rem;
-      background: var(--primary);
-      color: white;
-      margin: 0;
-      font-size: 1.1rem;
-    }
-
-    .detail-row {
-      display: flex;
-      padding: 0.875rem 1rem;
-      border-bottom: 1px solid var(--border);
-      transition: background 0.2s ease;
-    }
-
-    .detail-row:hover {
-      background: rgba(102, 126, 234, 0.05);
-    }
-
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .detail-label {
-      font-weight: 500;
-      color: var(--text-secondary);
-      min-width: 120px;
-      flex-shrink: 0;
-    }
-
-    .detail-value {
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    .welcome-message {
-      text-align: center;
-      padding: 1rem;
-      background: rgba(16, 185, 129, 0.1);
-      border-radius: var(--radius);
-      margin-bottom: 1.5rem;
-      color: var(--success);
-      font-weight: 500;
-    }
-
-    .admin-controls {
-      margin-top: 2rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-    }
-
-    .admin-controls h3 {
-      margin-bottom: 1rem;
-      color: var(--text-primary);
-      font-size: 1.1rem;
-    }
-
-    .admin-buttons {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
-
-    .vehicle-input {
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .modal.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal-content {
-      background: var(--bg-card);
-      border-radius: var(--radius);
-      padding: 2rem;
-      width: 90%;
-      max-width: 500px;
-      max-height: 80vh;
-      overflow-y: auto;
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
-    }
-
-    .modal.show .modal-content {
-      transform: scale(1);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-header h3 {
-      margin: 0;
-      color: var(--text-primary);
-    }
-
-    .close-btn {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text-secondary);
-      padding: 0.25rem;
-      border-radius: 50%;
-      transition: all 0.2s ease;
-    }
-
-    .close-btn:hover {
-      background: var(--bg-primary);
-      color: var(--text-primary);
-    }
-
-    .vehicles-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-
-    .vehicles-table th,
-    .vehicles-table td {
-      padding: 0.75rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .vehicles-table th {
-      background: var(--bg-primary);
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .vehicles-table tr:hover {
-      background: rgba(102, 126, 234, 0.05);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 0.5rem;
-    }
-
-    .btn-small {
-      padding: 0.375rem 0.75rem;
-      font-size: 0.875rem;
-    }
-
-    .search-bar {
-      position: relative;
-      margin-bottom: 1rem;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 0.75rem 1rem 0.75rem 2.5rem;
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      font-size: 1rem;
-      outline: none;
-      transition: all 0.3s ease;
-    }
-
-    .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--text-secondary);
-      font-size: 1.1rem;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 3rem 1rem;
-      color: var(--text-secondary);
-    }
-
-    .empty-state h3 {
-      margin-bottom: 0.5rem;
-      color: var(--text-primary);
-    }
-
-    .fade-in {
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Mobile responsiveness */
-    @media (max-width: 768px) {
-      .container {
-        margin: 0.5rem;
-        border-radius: 0.5rem;
-      }
-
-      .header {
-        padding: 1.5rem;
-      }
-
-      .content {
-        padding: 1.5rem;
-      }
-
-      .form-group.grid {
-        grid-template-columns: 1fr;
-      }
-
-      .admin-buttons {
-        grid-template-columns: 1fr;
-      }
-
-      .vehicles-table {
-        font-size: 0.875rem;
-      }
-
-      .vehicles-table th,
-      .vehicles-table td {
-        padding: 0.5rem;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-      }
-
-      .modal-content {
-        width: 95%;
-        padding: 1.5rem;
-      }
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Segoe UI, sans-serif;
+    }
+
+    body{
+      background:#f4f7fb;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:100vh;
+    }
+
+    .card{
+      background:white;
+      width:400px;
+      padding:30px;
+      border-radius:16px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    h2{
+      text-align:center;
+      margin-bottom:20px;
+      color:#333;
+    }
+
+    input{
+      width:100%;
+      padding:14px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      font-size:16px;
+      margin-bottom:15px;
+      text-transform:uppercase;
+    }
+
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:10px;
+      background:#2563eb;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      transition:.3s;
+    }
+
+    button:hover{
+      background:#1d4ed8;
+    }
+
+    button:disabled{
+      background:#94a3b8;
+      cursor:not-allowed;
+    }
+
+    #result{
+      margin-top:20px;
+      padding:15px;
+      border-radius:10px;
+      background:#f8fafc;
+      min-height:70px;
+      text-align:center;
+      font-weight:600;
+      line-height:1.6;
+    }
+
+    .success{
+      background:#ecfdf5 !important;
+      color:#15803d;
+      border:1px solid #86efac;
+    }
+
+    .error{
+      background:#fef2f2 !important;
+      color:#dc2626;
+      border:1px solid #fca5a5;
     }
   </style>
+
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>🚗 Vehicle Checker</h1>
-      <p>Secure vehicle verification system</p>
-    </div>
 
-    <!-- Login Section -->
-    <div id="login-section" class="content">
-      <div class="form-group">
-        <label for="email">Email Address</label>
-        <div class="input-container">
-          <input type="email" id="email" class="form-input" placeholder="Enter your email">
-          <div class="input-icon" id="email-icon">✓</div>
-        </div>
-      </div>
+<div class="card">
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <div class="input-container">
-          <input type="password" id="password" class="form-input" placeholder="Enter your password">
-          <div class="input-icon" id="password-icon">✓</div>
-        </div>
-      </div>
+  <h2>🚗 Vehicle Verification</h2>
 
-      <button class="btn btn-primary full-width" onclick="login()" id="login-btn">
-        <span id="login-text">Sign In</span>
-      </button>
-    </div>
+  <input
+    id="vehicleNo"
+    placeholder="e.g. MH04AB1234"
+    maxlength="15"
+    autocomplete="off">
 
-    <!-- Main Section -->
-    <div id="main-section" class="content" style="display: none;">
-      <div id="welcome" class="welcome-message"></div>
+  <button onclick="checkVehicle()">
+    CHECK VEHICLE
+  </button>
 
-      <div class="form-group">
-        <label for="vehicleInput">Vehicle Number</label>
-        <div class="input-container">
-          <input type="text" id="vehicleInput" class="form-input vehicle-input" placeholder="e.g., MH05HH4850" maxlength="10">
-          <div class="input-icon" id="vehicle-icon">🔍</div>
-        </div>
-      </div>
-
-      <button class="btn btn-primary full-width" onclick="checkVehicle()" id="check-btn">
-        <span id="check-text">Check Vehicle</span>
-      </button>
-
-      <div id="result" class="result"></div>
-      <div id="vehicleDetailsContainer" class="vehicle-details"></div>
-
-      <!-- Admin Controls -->
-      <div id="admin-controls" class="admin-controls" style="display: none;">
-        <h3>🛠️ Admin Tools</h3>
-        <div class="admin-buttons">
-          <button class="btn btn-secondary" onclick="showAddVehicleModal()">
-            ➕ Add Vehicle
-          </button>
-          <button class="btn btn-secondary" onclick="showAllVehiclesModal()">
-            📋 View All Vehicles
-          </button>
-        </div>
-      </div>
-
-      <button class="btn btn-secondary full-width" onclick="logout()" style="margin-top: 2rem;">
-        🚪 Logout
-      </button>
-    </div>
+  <div id="result">
+    Enter a vehicle number above
   </div>
 
-  <!-- Add Vehicle Modal -->
-  <div id="add-vehicle-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>➕ Add New Vehicle</h3>
-        <button class="close-btn" onclick="closeModal('add-vehicle-modal')">&times;</button>
-      </div>
-      
-      <div class="form-group">
-        <label for="add-vehicle-number">Vehicle Number *</label>
-        <input type="text" id="add-vehicle-number" class="form-input vehicle-input" placeholder="e.g., MH05HH4850" maxlength="10">
-      </div>
-      
-      <div class="form-group">
-        <label for="add-flat-number">Flat Number *</label>
-        <input type="text" id="add-flat-number" class="form-input" placeholder="e.g., A101">
-      </div>
-      
-      <div class="form-group">
-        <label for="add-owner-phone">Owner Phone</label>
-        <input type="tel" id="add-owner-phone" class="form-input" placeholder="e.g., 9876543210">
-      </div>
-      
-      <div class="form-group">
-        <label for="add-owner-name">Owner Name</label>
-        <input type="text" id="add-owner-name" class="form-input" placeholder="e.g., John Doe">
-      </div>
-      
-      <div class="form-group" style="display: flex; gap: 1rem;">
-        <button class="btn btn-success" onclick="addVehicle()" id="add-vehicle-btn">
-          <span>Add Vehicle</span>
-        </button>
-        <button class="btn btn-secondary" onclick="closeModal('add-vehicle-modal')">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
+</div>
 
-  <!-- View All Vehicles Modal -->
-  <div id="view-vehicles-modal" class="modal">
-    <div class="modal-content" style="max-width: 900px;">
-      <div class="modal-header">
-        <h3>📋 All Vehicles</h3>
-        <button class="close-btn" onclick="closeModal('view-vehicles-modal')">&times;</button>
-      </div>
-      
-      <div class="search-bar">
-        <div class="search-icon">🔍</div>
-        <input type="text" id="vehicle-search" class="search-input" placeholder="Search by vehicle number, flat, or owner...">
-      </div>
-      
-      <div id="vehicles-container">
-        <!-- Vehicles will be loaded here -->
-      </div>
-    </div>
-  </div>
+<script>
 
-  <!-- Edit Vehicle Modal -->
-  <div id="edit-vehicle-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>✏️ Edit Vehicle</h3>
-        <button class="close-btn" onclick="closeModal('edit-vehicle-modal')">&times;</button>
-      </div>
-      
-      <div class="form-group">
-        <label for="edit-vehicle-number">Vehicle Number *</label>
-        <input type="text" id="edit-vehicle-number" class="form-input vehicle-input" maxlength="10">
-      </div>
-      
-      <div class="form-group">
-        <label for="edit-flat-number">Flat Number *</label>
-        <input type="text" id="edit-flat-number" class="form-input">
-      </div>
-      
-      <div class="form-group">
-        <label for="edit-owner-phone">Owner Phone</label>
-        <input type="tel" id="edit-owner-phone" class="form-input">
-      </div>
-      
-      <div class="form-group">
-        <label for="edit-owner-name">Owner Name</label>
-        <input type="text" id="edit-owner-name" class="form-input">
-      </div>
-      
-      <div class="form-group" style="display: flex; gap: 1rem;">
-        <button class="btn btn-warning" onclick="updateVehicle()" id="edit-vehicle-btn">
-          <span>Update Vehicle</span>
-        </button>
-        <button class="btn btn-secondary" onclick="closeModal('edit-vehicle-modal')">
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
+const supabaseUrl = "https://udlupahqsyrdleodymhr.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbHVwYWhxc3lyZGxlb2R5bWhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjEyMDgsImV4cCI6MjA5NjEzNzIwOH0.uhits-97Ili-lmTxZk0tIyV03cpW5fKVJr-5FadvVMw";
 
-  <script>
-    const SUPABASE_URL = 'https://biwkpmslskmnbjcvwcdt.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJpd2twbXNsc2ttbmJqY3Z3Y2R0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYzNjU3NTEsImV4cCI6MjA2MTk0MTc1MX0.h6qolOroqISYbFoz0e2Q6yOtlERfv3OmkB-sNm1WzNY';
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient =
+  supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
 
-    let userRole = null;
-    let userSocietyId = null;
-    let currentEditingVehicle = null;
-    let allVehicles = [];
+async function checkVehicle() {
 
-    // Enhanced animations and interactions
-    function showLoading(button, text = 'Processing...') {
-      button.disabled = true;
-      button.classList.add('loading');
-      button.querySelector('span').textContent = text;
+  const resultDiv =
+    document.getElementById("result");
+
+  const btn =
+    document.querySelector("button");
+
+  const vehicle =
+    document
+      .getElementById("vehicleNo")
+      .value
+      .toUpperCase()
+      .replace(/\s+/g, "")
+      .trim();
+
+  // Empty Check
+  if(vehicle === ""){
+    resultDiv.className = "error";
+    resultDiv.innerHTML =
+      "⚠ Please enter a vehicle number";
+    return;
+  }
+
+  // Vehicle Number Format Validation
+  const vehicleRegex =
+    /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
+
+  if(!vehicleRegex.test(vehicle)){
+    resultDiv.className = "error";
+    resultDiv.innerHTML =
+      "⚠ Invalid vehicle number format";
+    return;
+  }
+
+  // Loading State
+  btn.disabled = true;
+  btn.innerHTML = "Checking...";
+
+  resultDiv.className = "";
+  resultDiv.innerHTML =
+    "🔍 Checking vehicle...";
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .from("vehicles")
+        .select("*")
+        .eq("vehicle_no", vehicle);
+
+    btn.disabled = false;
+    btn.innerHTML = "CHECK VEHICLE";
+
+    if(error){
+      console.error(error);
+
+      resultDiv.className = "error";
+      resultDiv.innerHTML =
+        "⚠ Database connection error";
+
+      return;
     }
 
-    function hideLoading(button, text) {
-      button.disabled = false;
-      button.classList.remove('loading');
-      button.querySelector('span').textContent = text;
+    if(data && data.length > 0){
+
+      resultDiv.className = "success";
+
+      resultDiv.innerHTML =
+        `✅ Registered<br><br>
+         Vehicle: ${vehicle}<br>
+         Owner: ${data[0].owner_name}<br>
+         Flat: ${data[0].flat_no}`;
+
+    } else {
+
+      resultDiv.className = "error";
+
+      resultDiv.innerHTML =
+        `❌ ${vehicle}<br><br>
+         Not Registered`;
     }
 
-    function showResult(message, type = 'success') {
-      const result = document.getElementById('result');
-      result.textContent = message;
-      result.className = `result ${type} show`;
-      
-      setTimeout(() => {
-        result.classList.remove('show');
-      }, 10000);
+  } catch(err){
+
+    console.error(err);
+
+    btn.disabled = false;
+    btn.innerHTML = "CHECK VEHICLE";
+
+    resultDiv.className = "error";
+    resultDiv.innerHTML =
+      "⚠ Unexpected error occurred";
+  }
+}
+
+// Enter Key Support
+document
+  .getElementById("vehicleNo")
+  .addEventListener("keypress", function(event){
+
+    if(event.key === "Enter"){
+      checkVehicle();
     }
 
-    function hideResult() {
-      const result = document.getElementById('result');
-      result.classList.remove('show');
-    }
+  });
 
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
-    }
+</script>
 
-    function validateVehicleNumber(number) {
-      return /^[A-Z]{2}[0-9]{2}[A-Z]{2}[0-9]{4}$/.test(number);
-    }
-
-    function updateInputState(inputId, iconId, isValid) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      
-      if (!input || !icon) return;
-      
-      input.classList.remove('success', 'error');
-      icon.classList.remove('show');
-      
-      if (isValid !== null) {
-        input.classList.add(isValid ? 'success' : 'error');
-        icon.classList.add('show');
-        icon.textContent = isValid ? '✓' : '✗';
-        icon.style.color = isValid ? 'var(--success)' : 'var(--error)';
-      }
-    }
-
-    function showModal(modalId) {
-      const modal = document.getElementById(modalId);
-      modal.classList.add('show');
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal(modalId) {
-      const modal = document.getElementById(modalId);
-      modal.classList.remove('show');
-      document.body.style.overflow = 'auto';
-      
-      // Clear form fields
-      const inputs = modal.querySelectorAll('.form-input');
-      inputs.forEach(input => {
-        input.value = '';
-        input.classList.remove('success', 'error');
-      });
-    }
-
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const loginBtn = document.getElementById("login-btn");
-
-      if (!email || !password) {
-        showResult("Please fill in all fields", "error");
-        return;
-      }
-
-      if (!validateEmail(email)) {
-        updateInputState('email', 'email-icon', false);
-        showResult("Please enter a valid email address", "error");
-        return;
-      }
-
-      showLoading(loginBtn, 'Signing in...');
-      hideResult();
-
-      try {
-        const { data, error } = await client.auth.signInWithPassword({ email, password });
-
-        if (error) {
-          showResult("Login failed: " + error.message, "error");
-          hideLoading(loginBtn, 'Sign In');
-          return;
-        }
-
-        const userId = data.user.id;
-        const { data: userRow } = await client
-          .from("users")
-          .select("email, society_id, role")
-          .eq("id", userId)
-          .single();
-
-        if (!userRow) {
-          showResult("User not linked to society", "error");
-          hideLoading(loginBtn, 'Sign In');
-          return;
-        }
-
-        userRole = userRow.role;
-        userSocietyId = userRow.society_id;
-
-        setTimeout(() => {
-          document.getElementById("login-section").style.display = "none";
-          document.getElementById("main-section").style.display = "block";
-          document.getElementById("main-section").classList.add("fade-in");
-          document.getElementById("welcome").textContent = `Welcome back, ${userRow.email.split('@')[0]}! 👋`;
-
-          if (userRole === "admin") {
-            document.getElementById("admin-controls").style.display = "block";
-          }
-        }, 500);
-
-        hideLoading(loginBtn, 'Sign In');
-      } catch (error) {
-        showResult("An error occurred during login", "error");
-        hideLoading(loginBtn, 'Sign In');
-      }
-    }
-
-    async function logout() {
-      await client.auth.signOut();
-      
-      document.getElementById("main-section").style.display = "none";
-      document.getElementById("admin-controls").style.display = "none";
-      document.getElementById("login-section").style.display = "block";
-      
-      // Clear all inputs and states
-      document.querySelectorAll('.form-input').forEach(input => {
-        input.value = '';
-        input.classList.remove('success', 'error');
-      });
-      
-      hideResult();
-      document.getElementById("vehicleDetailsContainer").innerHTML = "";
-      document.getElementById("vehicleDetailsContainer").classList.remove("show");
-      
-      // Close any open modals
-      document.querySelectorAll('.modal').forEach(modal => {
-        modal.classList.remove('show');
-      });
-      document.body.style.overflow = 'auto';
-    }
-
-    async function checkVehicle() {
-      const number = document.getElementById("vehicleInput").value.trim().toUpperCase();
-      const checkBtn = document.getElementById("check-btn");
-      const vehicleContainer = document.getElementById("vehicleDetailsContainer");
-
-      hideResult();
-      vehicleContainer.classList.remove("show");
-
-      if (!validateVehicleNumber(number)) {
-        showResult("❌ Invalid format (e.g., MH05HH4850)", "error");
-        updateInputState('vehicleInput', 'vehicle-icon', false);
-        return;
-      }
-
-      updateInputState('vehicleInput', 'vehicle-icon', true);
-      showLoading(checkBtn, 'Searching...');
-
-      try {
-        const { data } = await client
-          .from("vehiclenumbers")
-          .select("*")
-          .eq("number", number)
-          .eq("society_id", userSocietyId)
-          .single();
-
-        hideLoading(checkBtn, 'Check Vehicle');
-
-        if (!data) {
-          showResult("❌ Vehicle not found in records", "error");
-          return;
-        }
-
-        showResult("✅ Vehicle found successfully!", "success");
-
-        vehicleContainer.innerHTML = `
-          <h3>🚗 Vehicle Details</h3>
-          <div class="detail-row">
-            <span class="detail-label">Vehicle Number:</span>
-            <span class="detail-value">${data.number}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Flat Number:</span>
-            <span class="detail-value">${data.flat_no || "Not specified"}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Owner Phone:</span>
-            <span class="detail-value">${data.owner_phone || "Not provided"}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Owner Name:</span>
-            <span class="detail-value">${data.owner_name || "Not provided"}</span>
-          </div>
-        `;
-
-        setTimeout(() => {
-          vehicleContainer.classList.add("show");
-        }, 200);
-
-      } catch (error) {
-        hideLoading(checkBtn, 'Check Vehicle');
-        showResult("❌ Error checking vehicle", "error");
-      }
-    }
-
-    // Admin Functions
-    function showAddVehicleModal() {
-      showModal('add-vehicle-modal');
-    }
-
-    function showAllVehiclesModal() {
-      showModal('view-vehicles-modal');
-      loadAllVehicles();
-    }
-
-    async function addVehicle() {
-      const number = document.getElementById('add-vehicle-number').value.trim().toUpperCase();
-      const flatNo = document.getElementById('add-flat-number').value.trim();
-      const ownerPhone = document.getElementById('add-owner-phone').value.trim();
-      const ownerName = document.getElementById('add-owner-name').value.trim();
-      const addBtn = document.getElementById('add-vehicle-btn');
-
-      if (!number || !flatNo) {
-        showResult("Please fill in required fields", "error");
-        return;
-      }
-
-      if (!validateVehicleNumber(number)) {
-        showResult("Invalid vehicle number format", "error");
-        return;
-      }
-
-      showLoading(addBtn, 'Adding...');
-
-      try {
-        // Check if vehicle already exists
-        const { data: existing } = await client
-          .from("vehiclenumbers")
-          .select("number")
-          .eq("number", number)
-          .eq("society_id", userSocietyId)
-          .single();
-
-        if (existing) {
-          showResult("❌ Vehicle already exists", "error");
-          hideLoading(addBtn, 'Add Vehicle');
-          return;
-        }
-
-        // Add new vehicle
-        const { error } = await client
-          .from("vehiclenumbers")
-          .insert([{
-            number: number,
-            flat_no: flatNo,
-            //owner_phone: ownerPhone,
-            owner_name: ownerName,
-            society_id: userSocietyId
-          }]);
-
-        if (error) {
-          showResult("❌ Error adding vehicle: " + error.message, "error");
-          hideLoading(addBtn, 'Add Vehicle');
-          return;
-        }
-
-        showResult("✅ Vehicle added successfully!", "success");
-        closeModal('add-vehicle-modal');
-        hideLoading(addBtn, 'Add Vehicle');
-        
-        // Refresh vehicle list if open
-        if (document.getElementById('view-vehicles-modal').classList.contains('show')) {
-          loadAllVehicles();
-        }
-
-      } catch (error) {
-        showResult("❌ Error adding vehicle", "error");
-        hideLoading(addBtn, 'Add Vehicle');
-      }
-    }
-
-    async function loadAllVehicles() {
-      const container = document.getElementById('vehicles-container');
-      container.innerHTML = '<div class="empty-state">Loading vehicles...</div>';
-
-      try {
-        const { data, error } = await client
-          .from("vehiclenumbers")
-          .select("*")
-          .eq("society_id", userSocietyId)
-          .order('number', { ascending: true });
-
-        if (error) {
-          container.innerHTML = '<div class="empty-state"><h3>Error</h3><p>Failed to load vehicles</p></div>';
-          return;
-        }
-
-        allVehicles = data || [];
-
-        if (allVehicles.length === 0) {
-          container.innerHTML = '<div class="empty-state"><h3>No Vehicles</h3><p>No vehicles found in your society</p></div>';
-          return;
-        }
-
-        renderVehicles(allVehicles);
-
-      } catch (error) {
-        container.innerHTML = '<div class="empty-state"><h3>Error</h3><p>Failed to load vehicles</p></div>';
-      }
-    }
-
-    function renderVehicles(vehicles) {
-      const container = document.getElementById('vehicles-container');
-      
-      if (vehicles.length === 0) {
-        container.innerHTML = '<div class="empty-state"><h3>No Results</h3><p>No vehicles match your search</p></div>';
-        return;
-      }
-
-      container.innerHTML = `
-        <table class="vehicles-table">
-          <thead>
-            <tr>
-              <th>Vehicle Number</th>
-              <th>Flat Number</th>
-              <th>Owner Name</th>
-              <th>Owner Phone</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${vehicles.map(vehicle => `
-              <tr>
-                <td><strong>${vehicle.number}</strong></td>
-                <td>${vehicle.flat_no || '-'}</td>
-                <td>${vehicle.owner_name || '-'}</td>
-                <td>${vehicle.owner_phone || '-'}</td>
-                <td>
-                  <div class="action-buttons">
-                    <button class="btn btn-warning btn-small" onclick="editVehicle(${vehicle.id})">
-                      ✏️ Edit
-                    </button>
-                    <button class="btn btn-error btn-small" onclick="deleteVehicle(${vehicle.id}, '${vehicle.number}')">
-                      🗑️ Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-    }
-
-    function editVehicle(vehicleId) {
-      const vehicle = allVehicles.find(v => v.id === vehicleId);
-      if (!vehicle) return;
-
-      currentEditingVehicle = vehicle;
-      
-      document.getElementById('edit-vehicle-number').value = vehicle.number;
-      document.getElementById('edit-flat-number').value = vehicle.flat_no || '';
-      document.getElementById('edit-owner-phone').value = vehicle.owner_phone || '';
-      document.getElementById('edit-owner-name').value = vehicle.owner_name || '';
-      
-      showModal('edit-vehicle-modal');
-    }
-
-    async function updateVehicle() {
-      if (!currentEditingVehicle) return;
-
-      const number = document.getElementById('edit-vehicle-number').value.trim().toUpperCase();
-      const flatNo = document.getElementById('edit-flat-number').value.trim();
-      const ownerPhone = document.getElementById('edit-owner-phone').value.trim();
-      const ownerName = document.getElementById('edit-owner-name').value.trim();
-      const updateBtn = document.getElementById('edit-vehicle-btn');
-
-      if (!number || !flatNo) {
-        showResult("Please fill in required fields", "error");
-        return;
-      }
-
-      if (!validateVehicleNumber(number)) {
-        showResult("Invalid vehicle number format", "error");
-        return;
-      }
-
-      showLoading(updateBtn, 'Updating...');
-
-      try {
-        // Check if vehicle number already exists (excluding current vehicle)
-        if (number !== currentEditingVehicle.number) {
-          const { data: existing } = await client
-            .from("vehiclenumbers")
-            .select("number")
-            .eq("number", number)
-            .eq("society_id", userSocietyId)
-            .neq("id", currentEditingVehicle.id)
-            .single();
-
-          if (existing) {
-            showResult("❌ Vehicle number already exists", "error");
-            hideLoading(updateBtn, 'Update Vehicle');
-            return;
-          }
-        }
-
-        // Update vehicle
-        const { error } = await client
-          .from("vehiclenumbers")
-          .update({
-            number: number,
-            flat_no: flatNo,
-            owner_phone: ownerPhone,
-            owner_name: ownerName
-          })
-          .eq("id", currentEditingVehicle.id);
-
-        if (error) {
-          showResult("❌ Error updating vehicle: " + error.message, "error");
-          hideLoading(updateBtn, 'Update Vehicle');
-          return;
-        }
-
-        showResult("✅ Vehicle updated successfully!", "success");
-        closeModal('edit-vehicle-modal');
-        hideLoading(updateBtn, 'Update Vehicle');
-        
-        // Refresh vehicle list
-        loadAllVehicles();
-
-      } catch (error) {
-        showResult("❌ Error updating vehicle", "error");
-        hideLoading(updateBtn, 'Update Vehicle');
-      }
-    }
-
-    async function deleteVehicle(vehicleId, vehicleNumber) {
-      if (!confirm(`Are you sure you want to delete vehicle ${vehicleNumber}?`)) {
-        return;
-      }
-
-      try {
-        const { error } = await client
-          .from("vehiclenumbers")
-          .delete()
-          .eq("id", vehicleId);
-
-        if (error) {
-          showResult("❌ Error deleting vehicle: " + error.message, "error");
-          return;
-        }
-
-        showResult("✅ Vehicle deleted successfully!", "success");
-        loadAllVehicles();
-
-      } catch (error) {
-        showResult("❌ Error deleting vehicle", "error");
-      }
-    }
-
-    // Search functionality
-    function setupSearch() {
-      const searchInput = document.getElementById('vehicle-search');
-      if (!searchInput) return;
-
-      searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        
-        if (searchTerm === '') {
-          renderVehicles(allVehicles);
-          return;
-        }
-
-        const filtered = allVehicles.filter(vehicle => 
-          vehicle.number.toLowerCase().includes(searchTerm) ||
-          (vehicle.flat_no && vehicle.flat_no.toLowerCase().includes(searchTerm)) ||
-          (vehicle.owner_name && vehicle.owner_name.toLowerCase().includes(searchTerm)) ||
-          (vehicle.owner_phone && vehicle.owner_phone.includes(searchTerm))
-        );
-
-        renderVehicles(filtered);
-      });
-    }
-
-    // Enhanced input handling
-    document.addEventListener("DOMContentLoaded", () => {
-      const vehicleInput = document.getElementById("vehicleInput");
-      const emailInput = document.getElementById("email");
-      const passwordInput = document.getElementById("password");
-
-      // Vehicle input formatting
-      vehicleInput.addEventListener("input", (e) => {
-        e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
-        
-        const isValid = validateVehicleNumber(e.target.value);
-        if (e.target.value.length === 10) {
-          updateInputState('vehicleInput', 'vehicle-icon', isValid);
-        } else {
-          updateInputState('vehicleInput', 'vehicle-icon', null);
-        }
-      });
-
-      // Email validation
-      emailInput.addEventListener("blur", (e) => {
-        if (e.target.value) {
-          updateInputState('email', 'email-icon', validateEmail(e.target.value));
-        }
-      });
-
-      // Password validation
-      passwordInput.addEventListener("input", (e) => {
-        if (e.target.value.length >= 6) {
-          updateInputState('password', 'password-icon', true);
-        } else if (e.target.value.length > 0) {
-          updateInputState('password', 'password-icon', false);
-        } else {
-          updateInputState('password', 'password-icon', null);
-        }
-      });
-
-      // Enter key handling
-      [emailInput, passwordInput].forEach(input => {
-        input.addEventListener("keypress", (e) => {
-          if (e.key === "Enter") login();
-        });
-      });
-
-      vehicleInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") checkVehicle();
-      });
-
-      // Format vehicle numbers in add/edit forms
-      ['add-vehicle-number', 'edit-vehicle-number'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-          input.addEventListener("input", (e) => {
-            e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10);
-          });
-        }
-      });
-
-      // Setup search when modal opens
-      const viewVehiclesModal = document.getElementById('view-vehicles-modal');
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-            if (viewVehiclesModal.classList.contains('show')) {
-              setTimeout(setupSearch, 100);
-            }
-          }
-        });
-      });
-      observer.observe(viewVehiclesModal, { attributes: true });
-
-      // Close modals when clicking outside
-      document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-          if (e.target === modal) {
-            closeModal(modal.id);
-          }
-        });
-      });
-
-      // Enter key handling for add vehicle form
-      ['add-vehicle-number', 'add-flat-number', 'add-owner-phone', 'add-owner-name'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-          input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") addVehicle();
-          });
-        }
-      });
-
-      // Enter key handling for edit vehicle form
-      ['edit-vehicle-number', 'edit-flat-number', 'edit-owner-phone', 'edit-owner-name'].forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-          input.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") updateVehicle();
-          });
-        }
-      });
-    });
-  </script>
 </body>
 </html>
