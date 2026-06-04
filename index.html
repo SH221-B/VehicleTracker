@@ -1,194 +1,359 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-    <title>Number Plate Reader</title>
+  <title>Society Vehicle Verification</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-    <style>
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-            font-family:Arial, sans-serif;
-        }
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Segoe UI, sans-serif;
+    }
 
-        body{
-            background:#f4f6f9;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            min-height:100vh;
-            padding:20px;
-        }
+    body{
+      background:#f4f7fb;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      min-height:100vh;
+      padding:20px;
+    }
 
-        .card{
-            background:white;
-            width:100%;
-            max-width:500px;
-            padding:30px;
-            border-radius:15px;
-            box-shadow:0 10px 25px rgba(0,0,0,0.1);
-        }
+    .card{
+      background:white;
+      width:95%;
+      max-width:420px;
+      padding:30px;
+      border-radius:16px;
+      box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    }
 
-        h1{
-            text-align:center;
-            margin-bottom:20px;
-            color:#333;
-        }
+    h2{
+      text-align:center;
+      margin-bottom:20px;
+      color:#333;
+    }
 
-        input[type=file]{
-            width:100%;
-            margin-bottom:15px;
-        }
+    input{
+      width:100%;
+      padding:14px;
+      border:1px solid #ddd;
+      border-radius:10px;
+      font-size:16px;
+      margin-bottom:15px;
+    }
 
-        button{
-            width:100%;
-            padding:15px;
-            border:none;
-            border-radius:10px;
-            background:#2563eb;
-            color:white;
-            font-size:16px;
-            cursor:pointer;
-        }
+    button{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:10px;
+      background:#2563eb;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      transition:.3s;
+      margin-top:5px;
+    }
 
-        button:hover{
-            background:#1d4ed8;
-        }
+    button:hover{
+      background:#1d4ed8;
+    }
 
-        img{
-            width:100%;
-            margin-top:15px;
-            border-radius:10px;
-            display:none;
-        }
+    button:disabled{
+      background:#94a3b8;
+      cursor:not-allowed;
+    }
 
-        #result{
-            margin-top:20px;
-            padding:15px;
-            background:#f8fafc;
-            border-radius:10px;
-            min-height:80px;
-            text-align:center;
-            font-size:18px;
-            font-weight:bold;
-            word-break:break-word;
-        }
-    </style>
+    #result,
+    #loginResult{
+      margin-top:15px;
+      padding:15px;
+      border-radius:10px;
+      text-align:center;
+      font-weight:600;
+      line-height:1.6;
+    }
+
+    .success{
+      background:#ecfdf5;
+      color:#15803d;
+      border:1px solid #86efac;
+    }
+
+    .error{
+      background:#fef2f2;
+      color:#dc2626;
+      border:1px solid #fca5a5;
+    }
+
+    .logout-btn{
+      background:#ef4444;
+      margin-top:15px;
+    }
+
+    .logout-btn:hover{
+      background:#dc2626;
+    }
+  </style>
 
 </head>
 <body>
 
-<div class="card">
+<!-- LOGIN PAGE -->
 
-    <h1>🚗 Number Plate Reader</h1>
+<div id="loginPage" class="card">
 
-    <input
-        type="file"
-        id="vehicleImage"
-        accept="image/*"
-        capture="environment">
+  <h2>🔐 Security Login</h2>
 
-    <button onclick="readPlate()">
-        📷 Read Number Plate
-    </button>
+<input
+ type="text"
+ id="username"
+ placeholder="Username">
 
-    <img id="preview">
+<input
+ type="password"
+ id="password"
+ placeholder="Password">
 
-    <div id="result">
-        Take a photo of a vehicle number plate
-    </div>
+  <button onclick="login()">
+    LOGIN
+  </button>
+
+  <div id="loginResult"></div>
+
+</div>
+
+<!-- VEHICLE PAGE -->
+
+<div id="vehiclePage"
+     class="card"
+     style="display:none;">
+
+  <h2>🚗 Vehicle Verification</h2>
+
+<input
+ id="vehicleNo"
+ placeholder="e.g. MH04AB1234"
+ maxlength="15"
+ autocomplete="off">
+
+  <button onclick="checkVehicle()">
+    CHECK VEHICLE
+  </button>
+
+  <div id="result">
+    Enter a vehicle number above
+  </div>
+
+<button
+ class="logout-btn"
+ onclick="logout()">
+Logout </button>
 
 </div>
 
 <script>
 
-document
-.getElementById("vehicleImage")
-.addEventListener("change", function(event){
+const supabaseUrl = "https://udlupahqsyrdleodymhr.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbHVwYWhxc3lyZGxlb2R5bWhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjEyMDgsImV4cCI6MjA5NjEzNzIwOH0.uhits-97Ili-lmTxZk0tIyV03cpW5fKVJr-5FadvVMw";
 
-    const file = event.target.files[0];
+const supabaseClient =
+  supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
 
-    if(file){
+function login(){
 
-        const preview =
-            document.getElementById("preview");
+  const username =
+    document
+      .getElementById("username")
+      .value
+      .trim();
 
-        preview.src =
-            URL.createObjectURL(file);
+  const password =
+    document
+      .getElementById("password")
+      .value
+      .trim();
 
-        preview.style.display =
-            "block";
-    }
-});
+  if(
+      username === "guard"
+      &&
+      password === "welcome123"
+    ){
 
-async function readPlate(){
+      localStorage.setItem(
+        "loggedIn",
+        "true"
+      );
 
-    const file =
+      document
+        .getElementById("loginPage")
+        .style.display = "none";
+
+      document
+        .getElementById("vehiclePage")
+        .style.display = "block";
+
+  }
+  else{
+
+      const loginResult =
         document
-        .getElementById("vehicleImage")
-        .files[0];
+          .getElementById("loginResult");
 
-    if(!file){
+      loginResult.className = "error";
 
-        alert(
-            "Please select or capture an image first"
-        );
+      loginResult.innerHTML =
+        "❌ Invalid username or password";
+  }
+}
 
-        return;
+function logout(){
+
+  localStorage.removeItem(
+    "loggedIn"
+  );
+
+  location.reload();
+}
+
+window.onload = function(){
+
+  if(
+      localStorage.getItem("loggedIn")
+      === "true"
+    ){
+
+      document
+        .getElementById("loginPage")
+        .style.display = "none";
+
+      document
+        .getElementById("vehiclePage")
+        .style.display = "block";
+  }
+};
+
+async function checkVehicle() {
+
+  const resultDiv =
+    document.getElementById("result");
+
+  const btn =
+    document.querySelector("#vehiclePage button");
+
+  const vehicle =
+    document
+      .getElementById("vehicleNo")
+      .value
+      .toUpperCase()
+      .replace(/\s+/g, "")
+      .trim();
+
+  if(vehicle === ""){
+    resultDiv.className = "error";
+    resultDiv.innerHTML =
+      "⚠ Please enter a vehicle number";
+    return;
+  }
+
+  const vehicleRegex =
+    /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
+
+  if(!vehicleRegex.test(vehicle)){
+    resultDiv.className = "error";
+    resultDiv.innerHTML =
+      "⚠ Invalid vehicle number format";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = "Checking...";
+
+  resultDiv.className = "";
+  resultDiv.innerHTML =
+    "🔍 Checking vehicle...";
+
+  try{
+
+    const { data, error } =
+      await supabaseClient
+        .from("vehicles")
+        .select("*")
+        .eq("vehicle_no", vehicle);
+
+    btn.disabled = false;
+    btn.innerHTML =
+      "CHECK VEHICLE";
+
+    if(error){
+
+      console.error(error);
+
+      resultDiv.className = "error";
+
+      resultDiv.innerHTML =
+        "⚠ Database connection error";
+
+      return;
     }
 
-    const resultDiv =
-        document.getElementById("result");
+    if(data && data.length > 0){
+
+      resultDiv.className = "success";
+
+      resultDiv.innerHTML =
+        `✅ Registered<br><br>
+        Vehicle: ${vehicle}<br>
+        Owner: ${data[0].owner_name}<br>
+        Flat: ${data[0].flat_no}<br>
+		<h2>Parking number: ${data[0].Parking_Number}</h2>`;
+
+    }
+    else{
+
+      resultDiv.className = "error";
+
+      resultDiv.innerHTML =
+        `❌ ${vehicle}<br><br>
+        Not Registered`;
+    }
+
+  }
+  catch(err){
+
+    console.error(err);
+
+    btn.disabled = false;
+    btn.innerHTML =
+      "CHECK VEHICLE";
+
+    resultDiv.className = "error";
 
     resultDiv.innerHTML =
-        "🔍 Reading number plate...";
-
-    try{
-
-        const result =
-            await Tesseract.recognize(
-                file,
-                "eng"
-            );
-
-        const rawText =
-            result.data.text;
-
-        const cleanedText =
-            rawText
-            .toUpperCase()
-            .replace(/[^A-Z0-9]/g,'');
-
-        console.log(
-            "RAW OCR:",
-            rawText
-        );
-
-        console.log(
-            "CLEANED:",
-            cleanedText
-        );
-
-        resultDiv.innerHTML =
-            `
-            <div>
-                <b>Detected Text:</b>
-                <br><br>
-                ${cleanedText}
-            </div>
-            `;
-
-    }
-    catch(error){
-
-        console.error(error);
-
-        resultDiv.innerHTML =
-            "❌ Failed to read image";
-    }
+      "⚠ Unexpected error occurred";
+  }
 }
+
+document
+  .getElementById("vehicleNo")
+  .addEventListener(
+    "keypress",
+    function(event){
+
+      if(event.key === "Enter"){
+        checkVehicle();
+      }
+
+    }
+  );
 
 </script>
 
