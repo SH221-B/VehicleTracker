@@ -1,361 +1,193 @@
-<!DOCTYPE html>
-
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Society Vehicle Verification</title>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
-  <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family:Segoe UI, sans-serif;
-    }
-
-    body{
-      background:#f4f7fb;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      min-height:100vh;
-      padding:20px;
-    }
-
-    .card{
-      background:white;
-      width:95%;
-      max-width:420px;
-      padding:30px;
-      border-radius:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,0.1);
-    }
-
-    h2{
-      text-align:center;
-      margin-bottom:20px;
-      color:#333;
-    }
-
-    input{
-      width:100%;
-      padding:14px;
-      border:1px solid #ddd;
-      border-radius:10px;
-      font-size:16px;
-      margin-bottom:15px;
-    }
-
-    button{
-      width:100%;
-      padding:14px;
-      border:none;
-      border-radius:10px;
-      background:#2563eb;
-      color:white;
-      font-size:16px;
-      cursor:pointer;
-      transition:.3s;
-      margin-top:5px;
-    }
-
-    button:hover{
-      background:#1d4ed8;
-    }
-
-    button:disabled{
-      background:#94a3b8;
-      cursor:not-allowed;
-    }
-
-    #result,
-    #loginResult{
-      margin-top:15px;
-      padding:15px;
-      border-radius:10px;
-      text-align:center;
-      font-weight:600;
-      line-height:1.6;
-    }
-
-    .success{
-      background:#ecfdf5;
-      color:#15803d;
-      border:1px solid #86efac;
-    }
-
-    .error{
-      background:#fef2f2;
-      color:#dc2626;
-      border:1px solid #fca5a5;
-    }
-
-    .logout-btn{
-      background:#ef4444;
-      margin-top:15px;
-    }
-
-    .logout-btn:hover{
-      background:#dc2626;
-    }
-  </style>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Society Vehicle Lookup</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}
+.app{max-width:480px;min-height:100vh;margin:auto;background:white}
+header{background:#123b63;color:white;padding:30px 20px;text-align:center}.logo{font-size:38px}
+h1{font-size:24px;margin:10px 0 6px}header p{margin:0;color:#dbeafe}
+main{padding:24px 20px}label{display:block;font-weight:bold;margin-bottom:10px}
+input{width:100%;padding:16px;border:1px solid #cbd5e1;border-radius:10px;font-size:18px;text-transform:uppercase}
+button{width:100%;margin-top:14px;padding:16px;border:0;border-radius:10px;background:#167347;color:white;font-size:18px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.65;cursor:wait}#result{margin-top:22px}.result-card{padding:18px;border:1px solid #dbe3ed;border-radius:12px;background:#f8fafc}
+.result-card h2{margin-top:0;font-size:20px}.detail{padding:10px 0;border-bottom:1px solid #e2e8f0;overflow-wrap:anywhere}
+.detail:last-child{border-bottom:none}.detail strong{display:block;color:#64748b;font-size:13px;margin-bottom:4px}
+.found{color:#166534;font-weight:bold}.not-found{color:#b91c1c;background:#fef2f2;padding:16px;border-radius:10px}
+footer{padding:18px;text-align:center;color:#64748b;font-size:13px}
+#loginScreen{padding:24px 20px;max-width:480px;margin:auto}#loginScreen h2{margin-top:0}
+#loginScreen input{margin-bottom:14px;text-transform:none}#loginMessage{overflow-wrap:anywhere}
+</style>
 </head>
 <body>
-
-<!-- LOGIN PAGE -->
-
-<div id="loginPage" class="card">
-
-  <h2>🔐 Security Login</h2>
-
-<input
- type="text"
- id="username"
- placeholder="Username">
-
-<input
- type="password"
- id="password"
- placeholder="Password">
-
-  <button onclick="login()">
-    LOGIN
-  </button>
-
-  <div id="loginResult"></div>
-
+<div class="app">
+<header><div class="logo">🏢</div><h1>Society Vehicle Lookup</h1><p>Gatekeeper Parking Assistant</p></header>
+<section id="loginScreen">
+<h2>Gatekeeper Login</h2>
+<label for="loginEmail">Email Address</label>
+<input id="loginEmail" type="email" placeholder="Enter your email" autocomplete="username">
+<label for="loginPassword">Password</label>
+<input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password">
+<button id="loginBtn" type="button">Login</button><p id="loginMessage" role="status"></p>
+</section>
+<main hidden>
+<label for="vehicleNumber">Vehicle Registration Number</label>
+<input id="vehicleNumber" type="text" placeholder="e.g. MH01AB1234" autocomplete="off">
+<button id="searchBtn" type="button">Search Vehicle</button>
+<div id="result" aria-live="polite"></div>
+</main>
+<footer>Society Security • Vehicle Records</footer>
 </div>
-
-<!-- VEHICLE PAGE -->
-
-<div id="vehiclePage"
-     class="card"
-     style="display:none;">
-
-  <h2>🚗 Vehicle Verification</h2>
-
-<input
- id="vehicleNo"
- placeholder="e.g. MH04AB1234"
- maxlength="15"
- autocomplete="off">
-
-  <button onclick="checkVehicle()">
-    CHECK VEHICLE
-  </button>
-
-  <div id="result">
-    Enter a vehicle number above
-  </div>
-
-<button
- class="logout-btn"
- onclick="logout()">
-Logout </button>
-
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL = "https://eqjvbgzsxpxrmoebpfzy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_P4nTDrYikCBvhjQtba9dwQ_vwUVo7d1";
 
-const supabaseUrl = "https://udlupahqsyrdleodymhr.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkbHVwYWhxc3lyZGxlb2R5bWhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjEyMDgsImV4cCI6MjA5NjEzNzIwOH0.uhits-97Ili-lmTxZk0tIyV03cpW5fKVJr-5FadvVMw";
-
-const supabaseClient =
-  supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
-function login(){
-
-  const username =
-    document
-      .getElementById("username")
-      .value
-      .trim();
-
-  const password =
-    document
-      .getElementById("password")
-      .value
-      .trim();
-
-  if(
-      username === "guard"
-      &&
-      password === "welcome123"
-    ){
-
-      localStorage.setItem(
-        "loggedIn",
-        "true"
-      );
-
-      document
-        .getElementById("loginPage")
-        .style.display = "none";
-
-      document
-        .getElementById("vehiclePage")
-        .style.display = "block";
-
-  }
-  else{
-
-      const loginResult =
-        document
-          .getElementById("loginResult");
-
-      loginResult.className = "error";
-
-      loginResult.innerHTML =
-        "❌ Invalid username or password";
-  }
-}
-
-function logout(){
-
-  localStorage.removeItem(
-    "loggedIn"
-  );
-
-  location.reload();
-}
-
-window.onload = function(){
-
-  if(
-      localStorage.getItem("loggedIn")
-      === "true"
-    ){
-
-      document
-        .getElementById("loginPage")
-        .style.display = "none";
-
-      document
-        .getElementById("vehiclePage")
-        .style.display = "block";
-  }
-};
-
-async function checkVehicle() {
-
-  const resultDiv =
-    document.getElementById("result");
-
-  const btn =
-    document.querySelector("#vehiclePage button");
-
-  const vehicle =
-    document
-      .getElementById("vehicleNo")
-      .value
-      .toUpperCase()
-      .replace(/\s+/g, "")
-      .trim();
-
-  if(vehicle === ""){
-    resultDiv.className = "error";
-    resultDiv.innerHTML =
-      "⚠ Please enter a vehicle number";
+function initializeApp() {
+  if (!window.supabase || !window.supabase.createClient) {
+    alert("Could not load the database library. Check your internet connection.");
     return;
   }
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const input = document.getElementById("vehicleNumber");
+  const result = document.getElementById("result");
+  const main = document.querySelector("main");
+  const login = document.getElementById("loginScreen");
+  const loginMessage = document.getElementById("loginMessage");
+  const loginButton = document.getElementById("loginBtn");
+  const passwordInput = document.getElementById("loginPassword");
+  const searchButton = document.getElementById("searchBtn");
 
-  const vehicleRegex =
-    /^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{1,4}$/;
-
-  if(!vehicleRegex.test(vehicle)){
-    resultDiv.className = "error";
-    resultDiv.innerHTML =
-      "⚠ Invalid vehicle number format";
-    return;
-  }
-
-  btn.disabled = true;
-  btn.innerHTML = "Checking...";
-
-  resultDiv.className = "";
-  resultDiv.innerHTML =
-    "🔍 Checking vehicle...";
-
-  try{
-
-    const { data, error } =
-      await supabaseClient
-        .from("vehicles")
-        .select("*")
-        .eq("vehicle_no", vehicle);
-
-    btn.disabled = false;
-    btn.innerHTML =
-      "CHECK VEHICLE";
-
-    if(error){
-
-      console.error(error);
-
-      resultDiv.className = "error";
-
-      resultDiv.innerHTML =
-        "⚠ Database connection error";
-
+  async function signIn() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = passwordInput.value;
+    if (!email || !password) {
+      loginMessage.textContent = "Enter your email and password.";
       return;
     }
-
-    if(data && data.length > 0){
-
-      resultDiv.className = "success";
-
-      resultDiv.innerHTML =
-        `✅ Registered<br><br>
-        Vehicle: ${vehicle}<br>
-        Owner: ${data[0].owner_name}<br>
-        Flat: ${data[0].flat_no}<br>
-		<h2>Parking number: ${data[0].Parking_Number}</h2>`;
-
-    }
-    else{
-
-      resultDiv.className = "error";
-
-      resultDiv.innerHTML =
-        `❌ ${vehicle}<br><br>
-        Not Registered`;
-    }
-
-  }
-  catch(err){
-
-    console.error(err);
-
-    btn.disabled = false;
-    btn.innerHTML =
-      "CHECK VEHICLE";
-
-    resultDiv.className = "error";
-
-    resultDiv.innerHTML =
-      "⚠ Unexpected error occurred";
-  }
-}
-
-document
-  .getElementById("vehicleNo")
-  .addEventListener(
-    "keypress",
-    function(event){
-
-      if(event.key === "Enter"){
-        checkVehicle();
+    loginButton.disabled = true;
+    loginMessage.textContent = "Signing in...";
+    try {
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        loginMessage.textContent = "Login failed. Check your credentials and try again.";
+        console.error(error);
+        return;
       }
-
+      loginMessage.textContent = "";
+    } catch (error) {
+      console.error(error);
+      loginMessage.textContent = "Unable to connect. Please try again.";
+    } finally {
+      loginButton.disabled = false;
     }
-  );
+  }
+  loginButton.addEventListener("click", signIn);
+  passwordInput.addEventListener("keydown", e => { if (e.key === "Enter") signIn(); });
 
+  function detail(label, value) {
+    const row = document.createElement("div");
+    row.className = "detail";
+    const title = document.createElement("strong");
+    title.textContent = label;
+    row.appendChild(title);
+    row.appendChild(document.createTextNode(value || "Not available"));
+    return row;
+  }
+
+  async function searchVehicle() {
+    const number = input.value.trim().toUpperCase().replace(/\s+/g, "");
+    if (!number) {
+      result.className = "not-found";
+      result.textContent = "Please enter a vehicle number.";
+      return;
+    }
+    result.className = "";
+    result.textContent = "Searching database...";
+    searchButton.disabled = true;
+    try {
+      const { data, error } = await client.rpc("lookup_vehicle", { p_vehicle_number: number });
+      if (error) {
+        console.error(error);
+        result.className = "not-found";
+        result.textContent = "Search failed. Check database function permissions.";
+        return;
+      }
+      if (!data || data.length === 0) {
+        result.className = "not-found";
+        result.textContent = "Vehicle not found in the database.";
+        return;
+      }
+      const v = data[0];
+      const card = document.createElement("div");
+      card.className = "result-card";
+      const heading = document.createElement("h2");
+      heading.className = "found";
+      heading.textContent = "✓ Vehicle Found";
+      card.appendChild(heading);
+      const details = [
+        ["Vehicle Number", v.vehicle_number],
+        ["Vehicle Type", v.vehicle_type],
+        ["Parking Number", v.parking_number],
+        ["Flat Number", v.flat_number],
+        ["Parking Type", v.parking_type],
+        ["Flat Owner", v.owner_name],
+        ["Owner Mobile", v.owner_mobile]
+      ];
+      if (v.parking_type === "Rented") {
+        details.push(["Parking Rented By", v.rented_by_name], ["Renter Mobile", v.rented_by_mobile]);
+      }
+      details.forEach(([label, value]) => card.appendChild(detail(label, value)));
+      result.className = "";
+      result.replaceChildren(card);
+    } catch (error) {
+      console.error(error);
+      result.className = "not-found";
+      result.textContent = "Unable to connect. Please try again.";
+    } finally {
+      searchButton.disabled = false;
+    }
+  }
+  searchButton.addEventListener("click", searchVehicle);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") searchVehicle(); });
+
+  const logoutButton = document.createElement("button");
+  logoutButton.type = "button";
+  logoutButton.textContent = "Logout";
+  logoutButton.style.cssText = "margin:0 20px 20px;width:calc(100% - 40px)";
+  logoutButton.hidden = true;
+  main.after(logoutButton);
+  logoutButton.addEventListener("click", async () => {
+    await client.auth.signOut();
+    input.value = "";
+    result.replaceChildren();
+    result.className = "";
+    passwordInput.value = "";
+    loginMessage.textContent = "You have logged out.";
+  });
+
+  function updateScreen(session) {
+    const loggedIn = Boolean(session);
+    login.hidden = loggedIn;
+    main.hidden = !loggedIn;
+    logoutButton.hidden = !loggedIn;
+    if (loggedIn) input.focus();
+  }
+  client.auth.onAuthStateChange((event, session) => updateScreen(session));
+  client.auth.getSession().then(({ data, error }) => {
+    if (error) console.error(error);
+    updateScreen(data && data.session);
+  });
+}
+if (window.supabase && window.supabase.createClient) {
+  initializeApp();
+} else {
+  const library = document.querySelector('script[src*="supabase-js"]');
+  library.addEventListener("load", initializeApp, { once: true });
+  library.addEventListener("error", () => alert("Could not load the database library. Check your internet connection."), { once: true });
+}
 </script>
-
 </body>
 </html>
