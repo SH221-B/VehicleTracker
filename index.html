@@ -105,7 +105,30 @@ function initializeApp(){
  });
  const logout=document.createElement("button");logout.type="button";logout.textContent="Logout";logout.style.cssText="margin:0 20px 20px;width:calc(100% - 40px)";logout.hidden=true;main.after(logout);
  logout.addEventListener("click",async()=>{await client.auth.signOut();input.value="";result.replaceChildren();result.className="";ocrStatus.textContent="";preview.style.display="none";preview.removeAttribute("src");password.value="";loginMsg.textContent="You have logged out."});
- function screen(session){const ok=!!session;login.hidden=ok;main.hidden=!ok;logout.hidden=!ok;if(ok)input.focus()}
+ const IDLE_TIMEOUT_MS=5*60*1000;
+ let idleTimer=null,isLoggedIn=false;
+ async function automaticLogout(){
+  clearTimeout(idleTimer);idleTimer=null;
+  if(!isLoggedIn)return;
+  await client.auth.signOut();
+  input.value="";result.replaceChildren();result.className="";ocrStatus.textContent="";
+  preview.style.display="none";preview.removeAttribute("src");password.value="";
+  loginMsg.textContent="You were logged out after 5 minutes of inactivity. Please log in again.";
+ }
+ function resetIdleTimer(){
+  if(!isLoggedIn)return;
+  clearTimeout(idleTimer);
+  idleTimer=setTimeout(automaticLogout,IDLE_TIMEOUT_MS);
+ }
+ ["click","keydown","mousemove","touchstart","scroll"].forEach(evt=>{
+  document.addEventListener(evt,resetIdleTimer,{passive:true});
+ });
+ function screen(session){
+  const ok=!!session,wasLoggedIn=isLoggedIn;
+  isLoggedIn=ok;login.hidden=ok;main.hidden=!ok;logout.hidden=!ok;
+  if(ok){input.focus();if(!wasLoggedIn)resetIdleTimer()}
+  else{clearTimeout(idleTimer);idleTimer=null}
+ }
  client.auth.onAuthStateChange((event,session)=>screen(session));client.auth.getSession().then(({data,error})=>{if(error)console.error(error);screen(data&&data.session)});
 }
 if(window.supabase)initializeApp();else document.querySelector('script[src*="supabase-js"]').addEventListener("load",initializeApp,{once:true});
