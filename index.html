@@ -1,10 +1,98 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Society Vehicle Lookup</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0b2540"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Society Vehicle Lookup</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f1f5f9;color:#172033}.app{max-width:1200px;min-height:100vh;margin:auto;background:white}header{background:#123b63;color:white;padding:30px 20px;text-align:center}.logo{font-size:38px}h1{font-size:24px;margin:10px 0 6px}header p{margin:0;color:#dbeafe}main{padding:24px 20px;display:grid;grid-template-columns:minmax(300px,0.85fr) minmax(380px,1.15fr);gap:28px;align-items:start}main[hidden]{display:none}.lookup-controls,.results-panel{min-width:0}.results-panel{border-left:1px solid #e2e8f0;padding-left:24px;min-height:320px}.results-heading{margin:0 0 16px;font-size:21px}.lookup-controls #result{display:none}.vehicle-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.summary-name{font-size:17px;font-weight:700;color:#172033}.summary-flat{font-size:14px;color:#475569}.details-toggle{width:auto;margin-top:12px;padding:7px 12px;border-radius:7px;font-size:13px;font-weight:600;background:#e2e8f0;color:#123b63}.vehicle-details{margin-top:12px}.vehicle-details[hidden]{display:none}.vehicle-number{font-weight:700;color:#166534}label{display:block;font-weight:bold;margin-bottom:10px}input{width:100%;padding:16px;border:1px solid #cbd5e1;border-radius:10px;font-size:18px;text-transform:uppercase}button{width:100%;margin-top:14px;padding:16px;border:0;border-radius:10px;background:#167347;color:white;font-size:18px;font-weight:bold;cursor:pointer}button:disabled{opacity:.65;cursor:wait}#result{margin-top:22px}.result-card{padding:18px;border:1px solid #dbe3ed;border-radius:12px;background:#f8fafc}.result-card h2{margin-top:0;font-size:20px}.detail{padding:10px 0;border-bottom:1px solid #e2e8f0;overflow-wrap:anywhere}.detail:last-child{border-bottom:0}.detail strong{display:block;color:#64748b;font-size:13px;margin-bottom:4px}.found{color:#166534;font-weight:bold}.not-found{color:#b91c1c;background:#fef2f2;padding:16px;border-radius:10px}footer{padding:18px;text-align:center;color:#64748b;font-size:13px}#loginScreen{padding:24px 20px;max-width:480px;margin:auto}@media(max-width:760px){.app{max-width:480px}main{display:block;padding:20px}.results-panel{border-left:0;border-top:1px solid #e2e8f0;padding:22px 0 0;margin-top:24px;min-height:0}.results-heading{font-size:20px}}#loginScreen h2{margin-top:0}#loginScreen input{margin-bottom:14px;text-transform:none}.hint,#ocrStatus,#loginMessage{font-size:13px;line-height:1.45;overflow-wrap:anywhere}.camera-button{background:#123b63}#photoPreview{display:none;width:100%;max-height:260px;object-fit:contain;margin-top:14px;border-radius:10px;border:1px solid #dbe3ed}
+:root{--navy:#0b2540;--navy2:#123b63;--green:#12a16a;--green-d:#0e8a59;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--bg:#f3f6fb;--card:#fff;--shadow:0 10px 30px rgba(15,37,64,.10),0 2px 6px rgba(15,37,64,.06)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.app{min-height:100vh;display:flex;flex-direction:column}
+header{background:radial-gradient(900px 300px at 85% -20%,rgba(18,161,106,.35),transparent 60%),linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:22px 20px 84px}
+.header-inner{max-width:1160px;margin:auto;display:flex;align-items:center;gap:14px}
+.logo{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);display:grid;place-items:center;font-size:26px;flex:none}
+h1{font-size:20px;margin:0;letter-spacing:.2px}
+header p{margin:2px 0 0;color:#b9d3ee;font-size:13px}
+main,#loginScreen{position:relative;margin-top:-56px}
+main{width:100%;max-width:1160px;margin-left:auto;margin-right:auto;padding:0 20px;display:grid;grid-template-columns:minmax(300px,.85fr) minmax(380px,1.15fr);gap:22px;align-items:start}
+.lookup-controls,.results-panel{min-width:0;background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:26px}
+.results-panel{min-height:340px}
+.results-heading{margin:0 0 16px;font-size:18px;display:flex;align-items:center;gap:8px}
+.results-heading::before{content:"";width:4px;height:18px;border-radius:2px;background:var(--green)}
+.lookup-controls #result{display:none}
+label{display:block;font-weight:600;font-size:13px;color:#334155;margin-bottom:8px;letter-spacing:.2px}
+input{width:100%;padding:15px 16px;border:1.5px solid #cbd5e1;border-radius:12px;font-size:17px;background:#fff;color:var(--ink);transition:border-color .15s,box-shadow .15s;font-family:inherit}
+input:focus{outline:0;border-color:var(--green);box-shadow:0 0 0 4px rgba(18,161,106,.15)}
+#vehicleNumber{text-transform:uppercase;font-family:"SF Mono",Consolas,monospace;font-weight:700;font-size:22px;letter-spacing:3px;text-align:center;background:#fffbe6;border:2px solid #1e293b;padding:16px}
+#vehicleNumber::placeholder{color:#a8a38a;font-weight:500;letter-spacing:2px;font-size:18px}
+button{width:100%;margin-top:12px;padding:15px;border:0;border-radius:12px;background:var(--green);color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .08s,background .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(18,161,106,.28)}
+button:hover{background:var(--green-d)}button:active{transform:scale(.98)}
+button:disabled{opacity:.6;cursor:wait}
+.camera-button{background:var(--navy2);box-shadow:0 4px 12px rgba(18,59,99,.25)}.camera-button:hover{background:var(--navy)}
+.hint{margin:16px 0 0;padding:12px 14px;background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;color:#1e40af}
+.hint,#ocrStatus,#loginMessage{font-size:13px;line-height:1.5;overflow-wrap:anywhere}
+#ocrStatus{margin:12px 0 0;color:var(--mut)}#ocrStatus:empty,#loginMessage:empty{display:none}
+#photoPreview{display:none;width:100%;max-height:240px;object-fit:contain;margin-top:14px;border-radius:12px;border:1px solid var(--line);background:#f8fafc}
+#result{margin:0;color:var(--ink)}
+#result:empty::before{content:"🔎  Search a vehicle number or scan a plate to see owner and parking details here.";display:block;padding:36px 20px;text-align:center;color:var(--mut);border:2px dashed var(--line);border-radius:14px;line-height:1.6;font-size:14px}
+#result>p{margin:0 0 14px;padding:10px 12px;background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:10px;font-size:14px}
+.not-found{color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:16px;border-radius:12px;font-weight:600}
+.result-card{padding:18px;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:14px;background:#fff;box-shadow:0 2px 8px rgba(15,37,64,.05)}
+.vehicle-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.summary-name{font-size:18px;font-weight:700}
+.summary-flat{font-size:13px;font-weight:600;color:var(--navy2);background:#e8f1fb;padding:5px 12px;border-radius:999px}
+.details-toggle{width:auto;margin-top:14px;padding:8px 14px;border-radius:9px;font-size:13px;font-weight:600;background:#eef2f7;color:var(--navy2);box-shadow:none}
+.details-toggle:hover{background:#e2e8f0}
+.vehicle-details{margin-top:14px;padding-top:6px;border-top:1px solid var(--line)}
+.vehicle-number{display:inline-block;margin:12px 0 6px;padding:6px 14px;background:#fffbe6;border:2px solid #1e293b;border-radius:8px;font-family:"SF Mono",Consolas,monospace;font-weight:800;letter-spacing:2px;color:#0f172a}
+.detail{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:11px 0;border-bottom:1px solid #eef2f7;overflow-wrap:anywhere;font-weight:600;text-align:right}
+.detail:last-child{border-bottom:0}
+.detail strong{color:var(--mut);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;text-align:left;flex:none}
+#loginScreen{width:calc(100% - 40px);max-width:440px;margin-left:auto;margin-right:auto;background:var(--card);border-radius:20px;box-shadow:var(--shadow);padding:32px 28px}
+#loginScreen h2{margin:0 0 4px;font-size:22px}
+#loginScreen .sub{margin:0 0 22px;color:var(--mut);font-size:14px}
+#loginScreen input{margin-bottom:16px;text-transform:none}
+#loginScreen button{margin-top:6px}
+#loginMessage{margin:14px 0 0;padding:10px 12px;border-radius:10px;background:#f1f5f9;color:#334155}
+.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;padding-top:18px;border-top:1px solid var(--line)}
+.badges span{font-size:12px;color:var(--mut);background:#f1f5f9;padding:5px 10px;border-radius:999px}
+main+button{position:fixed;top:18px;right:18px;z-index:10;width:auto!important;margin:0!important;padding:9px 16px;font-size:13px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);box-shadow:none;backdrop-filter:blur(6px)}
+main+button:hover{background:rgba(255,255,255,.25)}
+footer{margin-top:auto;padding:28px 18px;text-align:center;color:var(--mut);font-size:12.5px}
+@media(max-width:760px){main{display:block;padding:0 14px}.results-panel{margin-top:16px;min-height:0}.lookup-controls,.results-panel{padding:20px;border-radius:16px}header{padding-bottom:78px}h1{font-size:18px}#vehicleNumber{font-size:20px}}
+
+/* ---- Mobile-first refinements ---- */
+html{-webkit-text-size-adjust:100%}
+body{-webkit-tap-highlight-color:transparent;overscroll-behavior-y:none}
+button,input{touch-action:manipulation}
+header{padding-top:calc(22px + env(safe-area-inset-top,0px))}
+footer{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))}
+main+button{top:calc(14px + env(safe-area-inset-top,0px));right:max(14px,env(safe-area-inset-right,0px));min-height:40px}
+button{min-height:54px}
+.details-toggle{min-height:44px;padding:10px 18px}
+.lookup-controls{display:flex;flex-direction:column}
+.lookup-controls #photoBtn{order:-3;margin-top:0;min-height:64px;font-size:17px}
+.lookup-controls #photoPreview{order:-2}
+.lookup-controls #ocrStatus{order:-1;margin-bottom:4px}
+.lookup-controls label{order:0;margin-top:22px;padding-top:20px;border-top:1px dashed #cbd5e1}
+.lookup-controls label::after{content:"  (or type it manually)";font-weight:500;color:var(--mut)}
+.lookup-controls #vehicleNumber{order:1}
+.lookup-controls #searchBtn{order:2}
+.lookup-controls .hint{order:5}
+@media(max-width:760px){
+ header{padding-left:16px;padding-right:16px;padding-bottom:72px}
+ .logo{width:42px;height:42px;font-size:22px;border-radius:12px}
+ h1{font-size:17px}header p{font-size:12px}
+ main,#loginScreen{margin-top:-52px}
+ main{padding:0 12px}
+ .lookup-controls,.results-panel{padding:18px 16px}
+ #photoPreview{max-height:130px}
+ #loginScreen{width:calc(100% - 24px);padding:26px 20px}
+ .detail{padding:13px 0}
+ .summary-name{font-size:17px}
+ .hint{font-size:12.5px}
+}
 </style></head><body><div class="app">
-<header><div class="logo">🏢</div><h1>Society Vehicle Lookup</h1><p>Gatekeeper Parking Assistant</p></header>
-<section id="loginScreen"><h2>Gatekeeper Login</h2><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" placeholder="Enter your email" autocomplete="username"><label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password"><button id="loginBtn" type="button">Login</button><p id="loginMessage" role="status"></p></section>
+<header><div class="header-inner"><div class="logo">🅿️</div><div><h1>Society Vehicle Lookup</h1><p>Gatekeeper Parking Assistant</p></div></div></header>
+<section id="loginScreen"><h2>Gatekeeper Login</h2><p class="sub">Sign in to look up resident vehicles and parking details.</p><label for="loginEmail">Email Address</label><input id="loginEmail" type="email" placeholder="Enter your email" autocomplete="username"><label for="loginPassword">Password</label><input id="loginPassword" type="password" placeholder="Enter your password" autocomplete="current-password"><button id="loginBtn" type="button">Login</button><p id="loginMessage" role="status"></p><div class="badges"><span>🔒 Secure access</span><span>📷 Plate scanning</span><span>⏱ Auto logout</span></div></section>
 <main hidden><section class="lookup-controls"><label for="vehicleNumber">Vehicle Registration Number</label><input id="vehicleNumber" type="text" placeholder="e.g. MH01AB1234" autocomplete="off"><button id="searchBtn" type="button">Search Vehicle</button><button id="photoBtn" class="camera-button" type="button">📷 Take Photo of Number Plate</button><input id="photoInput" type="file" accept="image/*" capture="environment" hidden><p class="hint">Take a clear, close-up photo of the number plate. The app will read the text and search automatically. OCR can make mistakes, so check the number before relying on the result.</p><img id="photoPreview" alt="Captured vehicle number plate preview"><p id="ocrStatus" role="status" aria-live="polite"></p></section><section class="results-panel"><h2 class="results-heading">Search Results</h2><div id="result" aria-live="polite"></div></section></main>
 <footer>Society Security • Vehicle Records</footer></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
